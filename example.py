@@ -6,7 +6,8 @@ from PIL import Image
 from maker.framesmaker import FramesMaker
 
 
-IMAGE_PATH = os.getenv('IMAGE_PATH', argv[1])
+# IMAGE_PATH = os.getenv('IMAGE_PATH', argv[1])
+IMAGE_PATH = 'example/gigacat.jpg'
 
 
 # Получаем изображение и изменяем его размер (чем мельше картинка, тем быстрее программа)

@@ -1,9 +1,8 @@
 import os
-from sys import argv
 
 from PIL import Image
 
-from maker.framesmaker import FramesMaker
+from framesmaker import FramesMaker
 
 
 # IMAGE_PATH = os.getenv('IMAGE_PATH', argv[1])

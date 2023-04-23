@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, BinaryIO
 
 import numpy as np
 from PIL.Image import Image
@@ -28,6 +28,10 @@ class FramesMaker:
         self.__frame_size = frame_size if frame_size else image.size
         self.__frames = []
 
+    @property
+    def count_frames(self):
+        return len(self.__frames)
+
     def move(self, from_: tuple[int, int], to: tuple[int, int], camsize: tuple[int, int] | float, count_frames: int):
         """
         Генерирует кадры движения от точки **from_** до точки **to**.
@@ -56,27 +60,36 @@ class FramesMaker:
 
         self.__frames = [func(idx, frame) for idx, frame in enumerate(self.__frames)]
 
-    def save_gif(self, path: str = 'out.gif', fps: int = 30, optimize=True):
+    def save_gif(self, fp: str | BinaryIO, fps: int = 30, optimize=True):
         """
         Собирает все кадры в один GIF файл и сохраняет его
 
-        :param path: Путь до выходного файла
-        :param fps: frames per second для gif
+        :param fp: куда записывать выходной файл
+        :param fps: fps для gif
         :param optimize: Оптимизровать ли gif?
         """
 
+        if self.count_frames == 0:
+            raise NoFramesForGifException()
+
         frames = iter(self.__frames)
-        next(frames).save(fp=path, format='GIF',
+        next(frames).save(fp=fp, format='GIF',
                           append_images=frames, save_all=True,
                           duration=1000 // fps, loop=0, optimize=optimize)
 
     def __crop(self, pos: np.ndarray[int, int], camsize: np.ndarray[int, int]) -> Image:
         start, end = pos - camsize / 2, pos + camsize / 2
-        # noinspection PyTypeChecker
-        image = self.__image.crop((*start, *end))
+        image = self.__image.crop((start[0], start[1], end[0], end[1]))
         return image.resize(self.__frame_size)
 
 
 class BoundsException(Exception):
+    """ Координаты точек выходят за границы изображения """
+
     def __init__(self, errors: tuple[np.ndarray], camsize: np.ndarray):
         super().__init__(', '.join(map(str, errors)) + f' {camsize=}')
+
+
+class NoFramesForGifException(Exception):
+    """ Нельзя сохранить gif из 0 кадров """
+    pass
